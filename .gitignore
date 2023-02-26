@@ -33,3 +33,5 @@ Debug/*
 */Debug/*
 */content/*
 *.vcxproj.user
+*.ini
+
