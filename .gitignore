@@ -11,6 +11,7 @@
 *.manifest
 *.user
 *.lastbuildstate
+*.res
 *.sdf
 *.suo
 *.rc
