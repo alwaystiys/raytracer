@@ -39,8 +39,27 @@ void outputSimpleImage() {
             pixels[index * 4 + 3] = 255;
         }
     }
+}
+
+void outputRaytracingSimpleImage() {
+    // Canvas
+    const auto aspect_ratio = 16 / 9;
+    const int image_width = 400;
+    const int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    // Camera and Viewport
+
+    auto viewport_height = 2.0;
+    auto viewport_width = viewport_height * aspect_ratio;
+
+    // the distance between camera and viewports
+    auto focal_length = 1.0;
+
+
 
 }
+
+
 
 int main(void)
 {
@@ -106,7 +125,7 @@ int main(void)
 
         ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
         ImGui::InputInt2("image size", inputSize);
-        ImGui::ListBox("select image", &item_current, items, IM_ARRAYSIZE(items), 4);
+        ImGui::ListBox("select image", &item_current, items, IM_ARRAYSIZE(items), 6);
         ImGui::Text("curr select = %d", item_current);
 
         if (ImGui::Button("Render")) {
@@ -160,6 +179,8 @@ int main(void)
             glBindTexture(GL_TEXTURE_2D, renderTexture);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageSize.x, imageSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
+            // ImVec2(0, 1) вСоб╫г
+            // ImVec2(1, 0) срио╫г
             ImGui::Image((ImTextureID)(intptr_t)renderTexture, imageSize, ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
         }
