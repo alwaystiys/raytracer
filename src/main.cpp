@@ -10,14 +10,30 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
+
+//#include<color.h>
+#include<vec3.h>
+#include<ray.h>
+
 #include <iostream>
 
 int inputSize[2]{ 1000, 1000 };
 ImVec2 imageSize(1000, 1000);
 uint8_t* pixels = nullptr;
+
+void updateImageSize(int width, int height) {
+    imageSize.x = width;
+    imageSize.y = height;
+
+    if (pixels != nullptr)
+        delete[] pixels;
+
+    pixels = new uint8_t[imageSize.x * imageSize.y * 4];
+}
 
 void outputSimpleImage() {
     for (int i = 0; i < imageSize.x; i++)
@@ -44,8 +60,8 @@ void outputSimpleImage() {
 void outputRaytracingSimpleImage() {
     // Canvas
     const auto aspect_ratio = 16 / 9;
-    const int image_width = 400;
-    const int image_height = static_cast<int>(image_width / aspect_ratio);
+    int image_width = 1000;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
 
     // Camera and Viewport
 
@@ -55,9 +71,41 @@ void outputRaytracingSimpleImage() {
     // the distance between camera and viewports
     auto focal_length = 1.0;
 
+    auto origin = point3(0, 0, 0);
+    auto horizontal = vec3(viewport_width, 0, 0);
+    auto vertical = vec3(0, viewport_height, 0);
+    auto lower_left_corner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
 
 
+    updateImageSize(image_width, image_height);
+
+    for (int i = 0; i < imageSize.x; i++) {
+        for (int j = 0; j < imageSize.y; j++) {
+            auto u = double(i) / (imageSize.x - 1);
+            auto v = double(j) / (imageSize.y - 1);
+
+            // lower_left_corner + u * horizontal + v * vertical 视口上的点
+            // lower_left_corner + u * horizontal + v * vertical - origin 由原点指向视口上的点的向量
+            ray r = ray(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+
+            vec3 unit_direction = unit_vector(r.direction());
+            auto t = 0.5 * (unit_direction.y() + 1.0);
+            color c = (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+
+            int ir = static_cast<int>(255.999 * c.x());
+            int ig = static_cast<int>(255.999 * c.y());
+            int ib = static_cast<int>(255.999 * c.z());
+
+            int index = i + j * imageSize.y;
+            pixels[index * 4] = ir;
+            pixels[index * 4 + 1] = ig;
+            pixels[index * 4 + 2] = ib;
+            pixels[index * 4 + 3] = 255;
+        }
+    }
 }
+
+
 
 
 
@@ -86,7 +134,7 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);     // Setup Platform/Renderer backends
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     bool showResult = false;
@@ -101,7 +149,17 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
-    const char* items[] = { "SimpleImage", "RaySimpleImage", "Cherry", "Kiwi", "Mango", "Orange", "Pineapple", "Strawberry", "Watermelon" };
+    const char* items[] = { 
+        "SimpleImage", 
+        "RaySimpleImage", 
+        "Cherry", 
+        "Kiwi", 
+        "Mango",
+        "Orange", 
+        "Pineapple",
+        "Strawberry", 
+        "Watermelon" 
+    };
     static int item_current = 0;
 
     while (!glfwWindowShouldClose(window))
@@ -112,8 +170,8 @@ int main(void)
         ImGui::NewFrame();
 
         // 1. Show the big demo window// (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        //if (show_demo_window)
-        //    ImGui::ShowDemoWindow(&show_demo_window);
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         //ImGui::SameLine();
@@ -127,6 +185,15 @@ int main(void)
         ImGui::InputInt2("image size", inputSize);
         ImGui::ListBox("select image", &item_current, items, IM_ARRAYSIZE(items), 6);
         ImGui::Text("curr select = %d", item_current);
+        ImGuiIO& io = ImGui::GetIO();
+        float scale = 2.0f;
+        io.FontGlobalScale = scale;
+        //ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, 0.3, 2.0, "%.2f", ImGuiSliderFlags_AlwaysClamp);
+        //ImGui::SetWindowFontScale(2.0f);
+        if (ImGui::Button("Demo")) {
+            show_demo_window = !show_demo_window;
+        }
+
 
         if (ImGui::Button("Render")) {
             imageSize.x = inputSize[0];
@@ -137,37 +204,19 @@ int main(void)
 
             pixels = new uint8_t[imageSize.x * imageSize.y * 4];
 
+
             switch (item_current)
             {
             case 0:
                 outputSimpleImage();
                 break;
+            case 1:
+                outputRaytracingSimpleImage();
+                break;
             default:
                 break;
             }
-
-            //for (int i = 0; i < imageSize.x; i++)
-            //{
-            //    for (int j = 0; j < imageSize.y; j++)
-            //    {
-            //        auto r = double(i) / (imageSize.x - 1);
-            //        auto g = double(j) / (imageSize.y - 1);
-            //        auto b = 0.25;
-
-            //        int ir = static_cast<int>(255.999 * r);
-            //        int ig = static_cast<int>(255.999 * g);
-            //        int ib = static_cast<int>(255.999 * b);
-
-            //        int index = i + j * imageSize.y;
-            //        pixels[index * 4] = ir;
-            //        pixels[index * 4 + 1] = ig;
-            //        pixels[index * 4 + 2] = ib;
-            //        pixels[index * 4 + 3] = 255;
-            //    }
-            //}
             showResult = true;
-
-
         }
         ImGui::End();
 
@@ -183,6 +232,10 @@ int main(void)
             // ImVec2(1, 0) 右上角
             ImGui::Image((ImTextureID)(intptr_t)renderTexture, imageSize, ImVec2(0, 1), ImVec2(1, 0));
             ImGui::End();
+        }
+
+        if (show_demo_window) {
+            ImGui::ShowDemoWindow(&show_demo_window);
         }
 
         glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
