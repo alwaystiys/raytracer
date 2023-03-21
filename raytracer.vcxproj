@@ -20,8 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\test.cpp" />
-    <ClCompile Include="src\test2.cpp" />
     <ClCompile Include="thirdparty\glad.c" />
     <ClCompile Include="thirdparty\imgui\imgui.cpp" />
     <ClCompile Include="thirdparty\imgui\imgui_demo.cpp" />
@@ -33,6 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\hittable.h" />
+    <ClInclude Include="include\hittable_list.h" />
     <ClInclude Include="include\sphere.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

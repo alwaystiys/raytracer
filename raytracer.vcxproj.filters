@@ -42,18 +42,15 @@
     <ClCompile Include="thirdparty\imgui\imgui_widgets.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\test.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\test2.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\hittable.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\sphere.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\hittable_list.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
