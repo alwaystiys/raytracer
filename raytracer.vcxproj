@@ -30,6 +30,7 @@
     <ClCompile Include="thirdparty\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\hittable.h" />
     <ClInclude Include="include\hittable_list.h" />
     <ClInclude Include="include\rtweekend.h" />

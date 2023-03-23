@@ -56,5 +56,8 @@
     <ClInclude Include="include\rtweekend.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

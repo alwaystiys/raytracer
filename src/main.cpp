@@ -16,10 +16,10 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 //#include<color.h>
-#include<rtweekend.h>
-#include<hittable_list.h>
-#include<sphere.h>
-
+#include <rtweekend.h>
+#include <hittable_list.h>
+#include <sphere.h>
+#include <camera.h>
 #include <iostream>
 
 int inputSize[2]{ 1000, 1000 };
@@ -34,6 +34,25 @@ void updateImageSize(int width, int height) {
         delete[] pixels;
 
     pixels = new uint8_t[imageSize.x * imageSize.y * 4];
+}
+
+void fillPixels(color& pixel_color, int index, int samples_per_pixel = 0) {
+
+    double r = pixel_color.x();
+    double g = pixel_color.y();
+    double b = pixel_color.z();
+
+    if (samples_per_pixel > 0) {
+        auto scale = 1.0 / samples_per_pixel;
+        r *= scale;
+        g *= scale;
+        b *= scale;
+    }
+
+    pixels[index * 4] = static_cast<int>(255.999 * r);
+    pixels[index * 4 + 1] = static_cast<int>(255.999 * g);
+    pixels[index * 4 + 2] = static_cast<int>(255.999 * b);
+    pixels[index * 4 + 3] = 255;
 }
 
 void outputSimpleImage() {
@@ -322,19 +341,63 @@ void outputRayColorNormalMultSphere() {
                 auto t = 0.5 * (unit_direction.y() + 1.0);
                 c = (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
             }
-
-            int ir = static_cast<int>(255.999 * c.x());
-            int ig = static_cast<int>(255.999 * c.y());
-            int ib = static_cast<int>(255.999 * c.z());
-
             int index = i + j * imageSize.y;
-            pixels[index * 4] = ir;
-            pixels[index * 4 + 1] = ig;
-            pixels[index * 4 + 2] = ib;
-            pixels[index * 4 + 3] = 255;
+            fillPixels(c, index);
         }
     }
 }
+
+void outputRayColorMultiSample() {
+    // Canvas
+    const auto aspect_ratio = 16 / 9;
+    int image_width = 800;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    // World
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+
+    // Camera and Viewport
+    camera cam;
+
+    const int samples_per_pixel = 1;
+
+    updateImageSize(image_width, image_height);
+
+    for (int i = 0; i < imageSize.x; i++) {
+        for (int j = 0; j < imageSize.y; j++) {
+
+            // lower_left_corner + u * horizontal + v * vertical 视口上的点
+            // lower_left_corner + u * horizontal + v * vertical - origin 由原点指向视口上的点的向量
+            // calc hit sphere
+            color pixel_color;
+
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                auto u = (i + random_double()) / (imageSize.x - 1);
+                auto v = (j + random_double()) / (imageSize.y - 1);
+                ray r = cam.get_ray(u, v);
+
+                hit_record rec;
+                color c;
+                if (world.hit(r, 0, infinity, rec)) {
+                    c = 0.5 * (rec.normal + color(1, 1, 1));
+                }
+                else {
+                    vec3 unit_direction = unit_vector(r.direction());
+                    auto t = 0.5 * (unit_direction.y() + 1.0);
+                    c = (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+                }
+                pixel_color += c;
+            }
+
+            int index = i + j * imageSize.y;
+            fillPixels(pixel_color, index, samples_per_pixel);
+        }
+    }
+}
+
+
 int main(void)
 {
     // glfw: initialize and configure
@@ -381,7 +444,7 @@ int main(void)
         "RaySphere", 
         "RayColorNormalSphere", 
         "RayColorNormalMultSphere",
-        "Orange", 
+        "RayColorMultiSample", 
         "Pineapple",
         "Strawberry", 
         "Watermelon" 
@@ -448,6 +511,8 @@ int main(void)
             case 4:
                 outputRayColorNormalMultSphere();
                 break;
+            case 5:
+                outputRayColorMultiSample();
             default:
                 break;
             }
