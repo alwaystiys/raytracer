@@ -16,8 +16,9 @@
 #include <imgui/imgui_impl_opengl3.h>
 
 //#include<color.h>
-#include<vec3.h>
-#include<ray.h>
+#include<rtweekend.h>
+#include<hittable_list.h>
+#include<sphere.h>
 
 #include <iostream>
 
@@ -272,6 +273,68 @@ void outputRayColorNormalSphere() {
     }
 }
 
+
+void outputRayColorNormalMultSphere() {
+    // Canvas
+    const auto aspect_ratio = 16 / 9;
+    int image_width = 800;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    // World
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+
+
+    // Camera and Viewport
+    auto viewport_height = 2.0;
+    auto viewport_width = viewport_height * aspect_ratio;
+
+    // the distance between camera and viewports
+    auto focal_length = 1.0;
+
+    auto origin = point3(0, 0, 0);
+    auto horizontal = vec3(viewport_width, 0, 0);
+    auto vertical = vec3(0, viewport_height, 0);
+    auto lower_left_corner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
+
+
+    updateImageSize(image_width, image_height);
+
+    for (int i = 0; i < imageSize.x; i++) {
+        for (int j = 0; j < imageSize.y; j++) {
+            auto u = double(i) / (imageSize.x - 1);
+            auto v = double(j) / (imageSize.y - 1);
+
+            // lower_left_corner + u * horizontal + v * vertical 视口上的点
+            // lower_left_corner + u * horizontal + v * vertical - origin 由原点指向视口上的点的向量
+            ray r = ray(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+
+            // calc hit sphere
+            color c;
+
+            hit_record rec;
+            if (world.hit(r, 0, infinity, rec)) {
+                c =  0.5 * (rec.normal + color(1, 1, 1));
+            }
+            else {
+                vec3 unit_direction = unit_vector(r.direction());
+                auto t = 0.5 * (unit_direction.y() + 1.0);
+                c = (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+            }
+
+            int ir = static_cast<int>(255.999 * c.x());
+            int ig = static_cast<int>(255.999 * c.y());
+            int ib = static_cast<int>(255.999 * c.z());
+
+            int index = i + j * imageSize.y;
+            pixels[index * 4] = ir;
+            pixels[index * 4 + 1] = ig;
+            pixels[index * 4 + 2] = ib;
+            pixels[index * 4 + 3] = 255;
+        }
+    }
+}
 int main(void)
 {
     // glfw: initialize and configure
@@ -317,7 +380,7 @@ int main(void)
         "RaySimpleImage", 
         "RaySphere", 
         "RayColorNormalSphere", 
-        "Mango",
+        "RayColorNormalMultSphere",
         "Orange", 
         "Pineapple",
         "Strawberry", 
@@ -381,6 +444,9 @@ int main(void)
                 break;
             case 3:
                 outputRayColorNormalSphere();
+                break;
+            case 4:
+                outputRayColorNormalMultSphere();
                 break;
             default:
                 break;

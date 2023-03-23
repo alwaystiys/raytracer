@@ -53,5 +53,8 @@
     <ClInclude Include="include\hittable_list.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\rtweekend.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

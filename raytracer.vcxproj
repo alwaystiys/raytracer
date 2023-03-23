@@ -32,6 +32,7 @@
   <ItemGroup>
     <ClInclude Include="include\hittable.h" />
     <ClInclude Include="include\hittable_list.h" />
+    <ClInclude Include="include\rtweekend.h" />
     <ClInclude Include="include\sphere.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
