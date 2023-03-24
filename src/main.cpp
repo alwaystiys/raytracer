@@ -25,6 +25,7 @@
 int inputSize[2]{ 1000, 1000 };
 ImVec2 imageSize(1000, 1000);
 uint8_t* pixels = nullptr;
+int samples_per_pixel = 50;
 
 void updateImageSize(int width, int height) {
     imageSize.x = width;
@@ -36,13 +37,13 @@ void updateImageSize(int width, int height) {
     pixels = new uint8_t[imageSize.x * imageSize.y * 4];
 }
 
-void fillPixels(color& pixel_color, int index, int samples_per_pixel = 0) {
+void fillPixels(color& pixel_color, int index, bool is_sample) {
 
     double r = pixel_color.x();
     double g = pixel_color.y();
     double b = pixel_color.z();
 
-    if (samples_per_pixel > 0) {
+    if (is_sample) {
         auto scale = 1.0 / samples_per_pixel;
         r *= scale;
         g *= scale;
@@ -342,10 +343,11 @@ void outputRayColorNormalMultSphere() {
                 c = (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
             }
             int index = i + j * imageSize.y;
-            fillPixels(c, index);
+            fillPixels(c, index, false);
         }
     }
 }
+
 
 void outputRayColorMultiSample() {
     // Canvas
@@ -361,8 +363,6 @@ void outputRayColorMultiSample() {
     // Camera and Viewport
     camera cam;
 
-    const int samples_per_pixel = 1;
-
     updateImageSize(image_width, image_height);
 
     for (int i = 0; i < imageSize.x; i++) {
@@ -371,11 +371,11 @@ void outputRayColorMultiSample() {
             // lower_left_corner + u * horizontal + v * vertical 视口上的点
             // lower_left_corner + u * horizontal + v * vertical - origin 由原点指向视口上的点的向量
             // calc hit sphere
-            color pixel_color;
+            color pixel_color(0, 0, 0);
 
             for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (imageSize.x - 1);
-                auto v = (j + random_double()) / (imageSize.y - 1);
+                auto u = (i + random_double2()) / (imageSize.x - 1);
+                auto v = (j + random_double2()) / (imageSize.y - 1);
                 ray r = cam.get_ray(u, v);
 
                 hit_record rec;
@@ -392,7 +392,7 @@ void outputRayColorMultiSample() {
             }
 
             int index = i + j * imageSize.y;
-            fillPixels(pixel_color, index, samples_per_pixel);
+            fillPixels(pixel_color, index, true);
         }
     }
 }
@@ -445,7 +445,6 @@ int main(void)
         "RayColorNormalSphere", 
         "RayColorNormalMultSphere",
         "RayColorMultiSample", 
-        "Pineapple",
         "Strawberry", 
         "Watermelon" 
     };
@@ -474,6 +473,10 @@ int main(void)
         ImGui::InputInt2("image size", inputSize);
         ImGui::ListBox("select image", &item_current, items, IM_ARRAYSIZE(items), 6);
         ImGui::Text("curr select = %d", item_current);
+
+        ImGui::InputInt("sample", &samples_per_pixel);
+
+            
         ImGuiIO& io = ImGui::GetIO();
         float scale = 2.0f;
         io.FontGlobalScale = scale;
