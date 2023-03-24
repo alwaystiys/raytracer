@@ -424,7 +424,7 @@ int main(void)
     ImGui_ImplOpenGL3_Init("#version 330");
 
     bool show_demo_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.2f, 0.25f, 0.40f, 1.00f);
 
     bool showResult = false;
 
