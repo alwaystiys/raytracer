@@ -38,7 +38,7 @@ void updateImageSize(int width, int height) {
     pixels = new uint8_t[imageSize.x * imageSize.y * 4];
 }
 
-void fillPixels(color& pixel_color, int index, bool is_sample) {
+void fillPixels(color& pixel_color, int index, bool is_sample = false, bool fix_gamma = false) {
 
     double r = pixel_color.x();
     double g = pixel_color.y();
@@ -49,6 +49,12 @@ void fillPixels(color& pixel_color, int index, bool is_sample) {
         r *= scale;
         g *= scale;
         b *= scale;
+    }
+
+    if (fix_gamma) {
+        r = sqrt(r);
+        g = sqrt(g);
+        b = sqrt(b);
     }
 
     pixels[index * 4] = static_cast<int>(255.999 * r);
@@ -405,7 +411,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     }
 
     hit_record rec;
-    if (world.hit(r, 0, infinity, rec)) {
+    if (world.hit(r, 0.001, infinity, rec)) {
         // random point 
         point3 target = rec.p + rec.normal + random_in_unit_sphere();
         return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth - 1);
@@ -451,7 +457,7 @@ void outPutRayColorRandomNormalSphere() {
             }
 
             int index = i + j * imageSize.y;
-            fillPixels(pixel_color, index, true);
+            fillPixels(pixel_color, index, true, true);
         }
     }
 }
