@@ -31,10 +31,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\color.h" />
     <ClInclude Include="include\hittable.h" />
     <ClInclude Include="include\hittable_list.h" />
+    <ClInclude Include="include\ray.h" />
     <ClInclude Include="include\rtweekend.h" />
     <ClInclude Include="include\sphere.h" />
+    <ClInclude Include="include\vec3.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

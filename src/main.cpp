@@ -25,7 +25,8 @@
 int inputSize[2]{ 1000, 1000 };
 ImVec2 imageSize(1000, 1000);
 uint8_t* pixels = nullptr;
-int samples_per_pixel = 50;
+int samples_per_pixel = 1;
+int max_depth = 50;
 
 void updateImageSize(int width, int height) {
     imageSize.x = width;
@@ -397,7 +398,63 @@ void outputRayColorMultiSample() {
     }
 }
 
+color ray_color(const ray& r, const hittable& world, int depth) {
 
+    if (depth <= 0) {
+        return color(0, 0, 0);
+    }
+
+    hit_record rec;
+    if (world.hit(r, 0, infinity, rec)) {
+        // random point 
+        point3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5 * ray_color(ray(rec.p, target - rec.p), world, depth - 1);
+    }
+    else {
+        vec3 unit_direction = unit_vector(r.direction());
+        auto t = 0.5 * (unit_direction.y() + 1.0);
+        return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+    }
+
+}
+
+
+void outPutRayColorRandomNormalSphere() {
+    // Canvas
+    const auto aspect_ratio = 16 / 9;
+    int image_width = 800;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
+
+    // World
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+
+    // Camera and Viewport
+    camera cam;
+
+    updateImageSize(image_width, image_height);
+
+    for (int i = 0; i < imageSize.x; i++) {
+        for (int j = 0; j < imageSize.y; j++) {
+
+            // lower_left_corner + u * horizontal + v * vertical 视口上的点
+            // lower_left_corner + u * horizontal + v * vertical - origin 由原点指向视口上的点的向量
+            // calc hit sphere
+            color pixel_color(0, 0, 0);
+
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                auto u = (i + random_double2()) / (imageSize.x - 1);
+                auto v = (j + random_double2()) / (imageSize.y - 1);
+                ray r = cam.get_ray(u, v);
+                pixel_color += ray_color(r, world, max_depth);
+            }
+
+            int index = i + j * imageSize.y;
+            fillPixels(pixel_color, index, true);
+        }
+    }
+}
 int main(void)
 {
     // glfw: initialize and configure
@@ -445,7 +502,7 @@ int main(void)
         "RayColorNormalSphere", 
         "RayColorNormalMultSphere",
         "RayColorMultiSample", 
-        "Strawberry", 
+        "RayColorRandomNormalSphere", 
         "Watermelon" 
     };
     static int item_current = 0;
@@ -475,7 +532,7 @@ int main(void)
         ImGui::Text("curr select = %d", item_current);
 
         ImGui::InputInt("sample", &samples_per_pixel);
-
+        ImGui::InputInt("max_depth", &max_depth);
             
         ImGuiIO& io = ImGui::GetIO();
         float scale = 2.0f;
@@ -516,6 +573,9 @@ int main(void)
                 break;
             case 5:
                 outputRayColorMultiSample();
+                break;
+            case 6:
+                outPutRayColorRandomNormalSphere();
             default:
                 break;
             }

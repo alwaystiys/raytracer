@@ -7,6 +7,7 @@
 #include <memory>
 #include <cstdlib>
 #include <random>
+#include<iostream>
 
 // Usings
 using std::shared_ptr;

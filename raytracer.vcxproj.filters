@@ -59,5 +59,14 @@
     <ClInclude Include="include\camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\color.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vec3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
